@@ -8,18 +8,35 @@ def show
 
   def index
     @all_ratings = Movie.all_ratings
-    @selected_ratings = params[:ratings] || Movie.all_ratings_as_hash
-    
-      
+    @selected_ratings = params[:ratings] || session[:ratings] || Movie.all_ratings_as_hash
     sort = params[:sort]
+    
+    
+    if((sort == nil && session[:sort] != nil) || (@selected_ratings == nil && session[:ratings] != nil))
+        if(sort == nil && session[:sort] != nil)
+            sort = session[:sort]
+        end
+        if(@selected_ratings == nil && session[:ratings] != nil)
+            @selected_ratings = session[:ratings]
+        elsif
+            puts "SETTING AS HASH"
+            @selected_ratings = Movie.all_ratings_as_hash
+        end
+        redirect_to movies_path(:sort => sort, :ratings => @selected_ratings)
+    end
+    
+    session[:sort] = sort
+    session[:ratings] = @selected_ratings
+      
     if sort == 'by_title'
         @title_class = 'bg-warning  hilite'
-        @movies = Movie.with_ratings(@selected_ratings.keys).order(:title)
+        @movies = Movie.with_ratings(session[:ratings].keys).order(:title)
+        
     elsif sort == 'by_date'
         @date_class = 'bg-warning hilite'
-        @movies = Movie.with_ratings(@selected_ratings.keys).order(:release_date)
+        @movies = Movie.with_ratings(session[:ratings].keys).order(:release_date)
     else
-        @movies = Movie.with_ratings(@selected_ratings.keys)
+        @movies = Movie.with_ratings(session[:ratings].keys)
     end
   end
 
